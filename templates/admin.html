@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Masala Trail</title>
+<style>
+  :root{
+    --maroon:#7A1E1E;
+    --turmeric:#D99A2B;
+    --cardamom:#56754A;
+    --cream:#FBF3E7;
+    --paper:#FFFFFF;
+    --line:#E8DCC8;
+    --ink:#2B2118;
+    --muted:#8A7A63;
+    --danger:#A8332A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:'Inter',-apple-system,system-ui,sans-serif;
+    background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Poppins',-apple-system,system-ui,sans-serif;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  img{max-width:100%;display:block;}
+
+  .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .gate-box{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:34px 30px;max-width:340px;width:100%;text-align:center;}
+  .gate-box .emoji{font-size:36px;margin-bottom:10px;}
+  .gate-box h2{margin:0 0 4px;font-size:19px;}
+  .gate-box p{font-size:12.5px;color:var(--muted);margin:0 0 18px;}
+  .gate-box input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:8px;font-size:14px;text-align:center;background:var(--cream);margin-bottom:10px;}
+  .gate-box input:focus{outline:2px solid var(--turmeric);}
+  .gate-btn{width:100%;padding:11px;border-radius:8px;background:var(--maroon);color:#fff;font-weight:700;font-size:14px;}
+  .gate-error{color:var(--danger);font-size:12px;margin-top:8px;display:none;}
+
+  header{background:var(--maroon);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+  .brand{font-weight:700;font-size:19px;display:flex;align-items:center;gap:8px;}
+  .brand .dot{color:var(--turmeric);}
+  .logout-btn{font-size:12px;color:rgba(255,255,255,0.8);font-weight:600;}
+  .wrap{max-width:980px;margin:0 auto;padding:20px 20px 60px;}
+
+  .tabbar{display:flex;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:5px;margin-bottom:22px;}
+  .tabbtn{flex:1;text-align:center;padding:10px;border-radius:7px;font-size:13px;font-weight:600;color:var(--muted);position:relative;}
+  .tabbtn.active{background:var(--maroon);color:#fff;}
+  .tab-count{
+    position:absolute;top:2px;right:8px;background:var(--turmeric);color:#3a2a08;font-size:10px;font-weight:700;
+    border-radius:999px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 4px;
+  }
+  .tabbtn.active .tab-count{background:#fff;color:var(--maroon);}
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;}
+  .panel h3{margin:0 0 16px;font-size:16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+  .field input,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;font-family:inherit;background:var(--cream);}
+  .field input:focus,.field select:focus{outline:2px solid var(--turmeric);}
+  .field-row{display:flex;gap:12px;}
+  .field-row .field{flex:1;}
+  .hint{font-size:11px;color:var(--muted);margin-top:4px;}
+  .add-btn{padding:12px 26px;border-radius:8px;background:var(--maroon);color:#fff;font-weight:700;font-size:14px;}
+  .add-btn:disabled{opacity:0.6;cursor:not-allowed;}
+  .msg{font-size:12.5px;font-weight:600;margin-top:10px;display:none;}
+  .msg.ok{color:var(--cardamom);}
+  .msg.err{color:var(--danger);}
+
+  .list-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .list-head span{font-size:12px;color:var(--muted);}
+  .empty{text-align:center;padding:40px 0;color:var(--muted);font-size:13px;}
+  .loading{text-align:center;padding:40px 0;color:var(--muted);font-size:13px;}
+
+  .prod-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .prod-row:last-child{border-bottom:none;}
+  .prod-thumb{width:54px;height:66px;border-radius:8px;background:#F3E6CE;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;}
+  .prod-thumb img{width:100%;height:100%;object-fit:cover;}
+  .prod-info{flex:1;min-width:160px;}
+  .prod-info .nm{font-size:13.5px;font-weight:600;}
+  .prod-info .meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .prod-tag{font-size:10.5px;background:#FFF6E5;color:var(--maroon);padding:2px 8px;border-radius:999px;font-weight:700;margin-right:6px;}
+  .prod-controls{display:flex;flex-direction:column;gap:6px;min-width:230px;flex:1;}
+  .prod-controls .row{display:flex;gap:6px;}
+  .prod-controls select, .prod-controls input{
+    padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:12px;background:var(--cream);font-family:inherit;flex:1;
+  }
+  .mini-btn{font-size:11.5px;font-weight:600;padding:7px 12px;border-radius:6px;background:var(--maroon);color:#fff;white-space:nowrap;}
+  .del-btn{font-size:12px;font-weight:600;color:var(--danger);white-space:nowrap;}
+  .stock-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .stock-tag.in_stock{background:#EEF2E9;color:var(--cardamom);}
+  .stock-tag.limited{background:#FFF1DA;color:#92660E;}
+  .stock-tag.out_of_stock{background:#FBEAE7;color:var(--danger);}
+
+  .order-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;}
+  .order-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .order-id{font-size:11px;color:var(--muted);font-weight:600;}
+  .order-date{font-size:12px;color:var(--muted);margin-top:2px;}
+  .order-status-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+  .order-status-tag.pending{background:#FFF1DA;color:#92660E;}
+  .order-status-tag.accepted{background:#EEF2E9;color:var(--cardamom);}
+  .order-status-tag.declined{background:#FBEAE7;color:var(--danger);}
+  .order-cust{font-size:13px;font-weight:600;margin-bottom:2px;}
+  .order-addr{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+  .order-items-line{font-size:12.5px;color:var(--ink);margin-bottom:10px;}
+  .order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .accept-btn{background:var(--cardamom);color:#fff;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:7px;}
+  .decline-btn{background:var(--danger);color:#fff;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:7px;}
+  .stage-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
+  .stage-row select{flex:1;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font-size:12.5px;background:var(--cream);}
+  .stage-row button{background:var(--maroon);color:#fff;font-size:12.5px;font-weight:700;padding:9px 16px;border-radius:7px;white-space:nowrap;}
+  .order-total{font-size:13.5px;font-weight:700;border-top:1px solid var(--line);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between;}
+  .payment-tag{font-size:11px;color:var(--muted);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gateScreen">
+  <div class="gate-box">
+    <div class="emoji">🔒</div>
+    <h2>Admin access</h2>
+    <p>Enter the admin PIN to manage Masala Trail.</p>
+    <input type="password" id="pinInput" placeholder="Admin PIN" onkeydown="if(event.key==='Enter') checkPin()">
+    <button class="gate-btn" onclick="checkPin()">Enter</button>
+    <div class="gate-error" id="gateError">Incorrect PIN. Try again.</div>
+  </div>
+</div>
+
+<div id="adminApp" style="display:none;">
+  <header>
+    <div class="brand">🌶️ Masala Trail<span class="dot">.</span> Admin</div>
+    <button class="logout-btn" onclick="logout()">Log out</button>
+  </header>
+
+  <div class="wrap">
+    <div class="tabbar">
+      <button class="tabbtn active" data-tab="orders" onclick="switchTab('orders')">
+        Orders <span class="tab-count" id="ordersTabCount" style="display:none">0</span>
+      </button>
+      <button class="tabbtn" data-tab="products" onclick="switchTab('products')">Products</button>
+    </div>
+
+    <div class="tabpanel active" id="tab-orders">
+      <div class="panel">
+        <div class="list-head">
+          <h3 style="margin:0;">Received orders</h3>
+          <span id="orderCount"></span>
+        </div>
+        <div id="ordersList"><div class="loading">Loading orders…</div></div>
+      </div>
+    </div>
+
+    <div class="tabpanel" id="tab-products">
+      <div class="panel">
+        <h3>Add a new product</h3>
+        <div class="field">
+          <label>Product name</label>
+          <input id="pName" type="text" placeholder="e.g. Star Anise Whole">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Category</label>
+            <select id="pCat">
+              <option>Whole Spices</option>
+              <option>Ground Spices</option>
+              <option>Blends</option>
+              <option>Herbs</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Unit / pack size</label>
+            <input id="pUnit" type="text" placeholder="e.g. 100g">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Selling price (₹)</label>
+            <input id="pPrice" type="number" min="1" placeholder="e.g. 149">
+          </div>
+          <div class="field">
+            <label>MRP (₹) — optional, for strike-through</label>
+            <input id="pMrp" type="number" min="1" placeholder="e.g. 199">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Icon (emoji, used if no image)</label>
+            <input id="pEmoji" type="text" placeholder="🌶️" maxlength="4">
+          </div>
+          <div class="field">
+            <label>Rating (optional, 1–5)</label>
+            <input id="pRating" type="number" min="1" max="5" step="0.1" placeholder="4.5">
+          </div>
+        </div>
+        <div class="field">
+          <label>Product image URL (optional)</label>
+          <input id="pImage" type="text" placeholder="https://...">
+          <div class="hint">Paste a direct image link. If left blank, the emoji icon is shown instead.</div>
+        </div>
+        <div class="field">
+          <label>Stock status</label>
+          <select id="pStock">
+            <option value="in_stock">In stock</option>
+            <option value="limited">Limited quantity</option>
+            <option value="out_of_stock">Out of stock</option>
+          </select>
+        </div>
+        <button class="add-btn" id="addBtn" onclick="addProduct()">Add product</button>
+        <div class="msg" id="formMsg"></div>
+      </div>
+
+      <div class="panel">
+        <div class="list-head">
+          <h3 style="margin:0;">All products</h3>
+          <span id="customCount"></span>
+        </div>
+        <div id="allProductsList"><div class="loading">Loading products…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_PIN = "spice123"; // change this to your own PIN
+let unlocked = false; // in-memory only — resets on reload, no sessionStorage used
+
+function checkPin(){
+  const val = document.getElementById('pinInput').value;
+  if(val === ADMIN_PIN){
+    unlocked = true;
+    unlock();
+  } else {
+    document.getElementById('gateError').style.display = 'block';
+  }
+}
+function unlock(){
+  document.getElementById('gateScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'block';
+  renderAllProducts();
+  renderOrders();
+}
+function logout(){
+  unlocked = false;
+  document.getElementById('pinInput').value = '';
+  document.getElementById('gateError').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('gateScreen').style.display = 'flex';
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='orders') renderOrders();
+  if(tab==='products') renderAllProducts();
+}
+
+/* ===================================================================
+   STORAGE LAYER
+   Uses the artifact persistent-storage API (window.storage) when this
+   page runs inside Claude's preview. Falls back to plain localStorage
+   automatically if you host this file on your own server, where
+   window.storage won't exist. Either way, the rest of the app just
+   calls getData()/setData() and doesn't need to know which is used.
+=================================================================== */
+const usingArtifactStorage = (typeof window.storage !== 'undefined');
+
+async function getData(key, fallback){
+  try{
+    if(usingArtifactStorage){
+      const res = await window.storage.get(key, true);
+      return res ? JSON.parse(res.value) : fallback;
+    } else {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }
+  }catch(e){
+    return fallback;
+  }
+}
+async function setData(key, value){
+  try{
+    const str = JSON.stringify(value);
+    if(usingArtifactStorage){
+      await window.storage.set(key, str, true);
+    } else {
+      localStorage.setItem(key, str);
+    }
+  }catch(e){
+    console.error('Storage write failed for', key, e);
+  }
+}
+
+/* ===== Must mirror the store's built-in catalogue so stock/images can be managed for it too ===== */
+const BUILTIN_PRODUCTS = [
+  {id:1,name:"Kashmiri Red Chilli Powder",cat:"Ground Spices",emoji:"🌶️",price:149,mrp:199,rating:4.6,unit:"200g"},
+  {id:2,name:"Turmeric Powder (Haldi)",cat:"Ground Spices",emoji:"🟡",price:99,mrp:140,rating:4.7,unit:"200g"},
+  {id:3,name:"Whole Black Peppercorns",cat:"Whole Spices",emoji:"⚫",price:219,mrp:299,rating:4.5,unit:"100g"},
+  {id:4,name:"Green Cardamom (Elaichi)",cat:"Whole Spices",emoji:"🌿",price:329,mrp:420,rating:4.8,unit:"50g"},
+  {id:5,name:"Cumin Seeds (Jeera)",cat:"Whole Spices",emoji:"🟤",price:129,mrp:169,rating:4.6,unit:"200g"},
+  {id:6,name:"Garam Masala Blend",cat:"Blends",emoji:"🧂",price:179,mrp:230,rating:4.7,unit:"100g"},
+  {id:7,name:"Coriander Powder (Dhania)",cat:"Ground Spices",emoji:"🌾",price:109,mrp:150,rating:4.4,unit:"200g"},
+  {id:8,name:"Cinnamon Sticks (Dalchini)",cat:"Whole Spices",emoji:"🟫",price:159,mrp:210,rating:4.6,unit:"100g"},
+  {id:9,name:"Chai Masala Blend",cat:"Blends",emoji:"☕",price:189,mrp:240,rating:4.8,unit:"100g"},
+  {id:10,name:"Dried Fenugreek Leaves",cat:"Herbs",emoji:"🍃",price:89,mrp:120,rating:4.3,unit:"50g"},
+  {id:11,name:"Mustard Seeds (Rai)",cat:"Whole Spices",emoji:"🟡",price:79,mrp:110,rating:4.4,unit:"150g"},
+  {id:12,name:"Biryani Masala Blend",cat:"Blends",emoji:"🍛",price:199,mrp:260,rating:4.7,unit:"100g"},
+  {id:13,name:"Dried Bay Leaves (Tej Patta)",cat:"Herbs",emoji:"🌿",price:69,mrp:95,rating:4.2,unit:"30g"},
+  {id:14,name:"Fennel Seeds (Saunf)",cat:"Whole Spices",emoji:"🌱",price:99,mrp:135,rating:4.5,unit:"150g"},
+  {id:15,name:"Dried Mint Leaves",cat:"Herbs",emoji:"🍃",price:79,mrp:110,rating:4.3,unit:"40g"},
+  {id:16,name:"Pickle Masala Blend",cat:"Blends",emoji:"🥒",price:159,mrp:199,rating:4.5,unit:"100g"}
+];
+
+const KEYS = {
+  custom: 'mt_custom_products',
+  stock: 'mt_stock',
+  images: 'mt_images',
+  orders: 'mt_orders'
+};
+
+/* ===== Add product ===== */
+async function addProduct(){
+  const name = document.getElementById('pName').value.trim();
+  const cat = document.getElementById('pCat').value;
+  const unit = document.getElementById('pUnit').value.trim() || '1 unit';
+  const price = parseFloat(document.getElementById('pPrice').value);
+  let mrp = parseFloat(document.getElementById('pMrp').value);
+  const emoji = document.getElementById('pEmoji').value.trim() || '🧂';
+  const image = document.getElementById('pImage').value.trim();
+  const stock = document.getElementById('pStock').value;
+  let rating = parseFloat(document.getElementById('pRating').value);
+
+  const msg = document.getElementById('formMsg');
+  msg.style.display = 'block';
+
+  if(!name || !price || price <= 0){
+    msg.className = 'msg err';
+    msg.textContent = 'Please add at least a product name and a valid price.';
+    return;
+  }
+  if(!mrp || mrp < price) mrp = Math.round(price * 1.3);
+  if(!rating || rating < 1 || rating > 5) rating = 4.5;
+
+  const addBtn = document.getElementById('addBtn');
+  addBtn.disabled = true;
+  addBtn.textContent = 'Adding…';
+
+  const list = await getData(KEYS.custom, []);
+  const newProduct = {
+    id: Date.now(), name, cat, unit,
+    price: Math.round(price), mrp: Math.round(mrp),
+    emoji, rating: Math.round(rating * 10) / 10,
+    stock
+  };
+  if(image) newProduct.image = image;
+  list.push(newProduct);
+  await setData(KEYS.custom, list);
+
+  msg.className = 'msg ok';
+  msg.textContent = `"${name}" added — it will now show up on the store.`;
+
+  ['pName','pUnit','pPrice','pMrp','pEmoji','pImage','pRating'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pStock').value = 'in_stock';
+  addBtn.disabled = false;
+  addBtn.textContent = 'Add product';
+
+  renderAllProducts();
+}
+
+async function deleteCustomProduct(id){
+  let list = await getData(KEYS.custom, []);
+  list = list.filter(p => p.id !== id);
+  await setData(KEYS.custom, list);
+  renderAllProducts();
+}
+
+/* ===== Stock & image controls (works for both built-in and custom items) ===== */
+async function setStock(id, isCustom, value){
+  if(isCustom){
+    const list = await getData(KEYS.custom, []);
+    const p = list.find(x=>x.id===id);
+    if(p){ p.stock = value; await setData(KEYS.custom, list); }
+  } else {
+    const map = await getData(KEYS.stock, {});
+    map[id] = value;
+    await setData(KEYS.stock, map);
+  }
+  renderAllProducts();
+}
+async function setImage(id, isCustom, url){
+  if(isCustom){
+    const list = await getData(KEYS.custom, []);
+    const p = list.find(x=>x.id===id);
+    if(p){ if(url) p.image = url; else delete p.image; await setData(KEYS.custom, list); }
+  } else {
+    const map = await getData(KEYS.images, {});
+    if(url) map[id] = url; else delete map[id];
+    await setData(KEYS.images, map);
+  }
+  renderAllProducts();
+}
+
+async function renderAllProducts(){
+  const container = document.getElementById('allProductsList');
+  const custom = await getData(KEYS.custom, []);
+  const stockMap = await getData(KEYS.stock, {});
+  const imgMap = await getData(KEYS.images, {});
+
+  const all = [
+    ...BUILTIN_PRODUCTS.map(p=>({...p, isCustom:false, stock: stockMap[p.id] || 'in_stock', image: imgMap[p.id] || null})),
+    ...custom.map(p=>({...p, isCustom:true, stock: p.stock || 'in_stock', image: p.image || null}))
+  ];
+  document.getElementById('customCount').textContent = all.length + ' products (' + custom.length + ' added by you)';
+
+  container.innerHTML = all.map(p => `
+    <div class="prod-row">
+      <div class="prod-thumb">${p.image ? `<img src="${p.image}" alt="">` : p.emoji}</div>
+      <div class="prod-info">
+        <div class="nm">${p.name}</div>
+        <div class="meta">
+          <span class="prod-tag">${p.cat}</span>${p.unit} · ₹${p.price}
+          <span style="text-decoration:line-through;color:var(--muted);">₹${p.mrp}</span> · ★ ${p.rating}
+          <br><span class="stock-tag ${p.stock}">${p.stock==='in_stock'?'In stock':p.stock==='limited'?'Limited':'Out of stock'}</span>
+        </div>
+      </div>
+      <div class="prod-controls">
+        <div class="row">
+          <select onchange="setStock(${p.id}, ${p.isCustom}, this.value)">
+            <option value="in_stock" ${p.stock==='in_stock'?'selected':''}>In stock</option>
+            <option value="limited" ${p.stock==='limited'?'selected':''}>Limited quantity</option>
+            <option value="out_of_stock" ${p.stock==='out_of_stock'?'selected':''}>Out of stock</option>
+          </select>
+        </div>
+        <div class="row">
+          <input type="text" placeholder="Image URL" value="${p.image||''}" id="img-${p.id}-${p.isCustom}">
+          <button class="mini-btn" onclick="setImage(${p.id}, ${p.isCustom}, document.getElementById('img-${p.id}-${p.isCustom}').value.trim())">Save</button>
+        </div>
+        ${p.isCustom ? `<button class="del-btn" style="align-self:flex-start;" onclick="deleteCustomProduct(${p.id})">Remove product</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ===== Orders ===== */
+const STAGES = ['Processing','Packed','Shipped','Out for Delivery','Delivered'];
+
+async function renderOrders(){
+  const list = document.getElementById('ordersList');
+  const orders = await getData(KEYS.orders, []);
+  const pendingCount = orders.filter(o=>o.status==='Pending').length;
+  const tabCount = document.getElementById('ordersTabCount');
+  if(pendingCount>0){ tabCount.style.display='flex'; tabCount.textContent = pendingCount; }
+  else { tabCount.style.display='none'; }
+
+  document.getElementById('orderCount').textContent = orders.length + (orders.length===1?' order':' orders');
+  if(orders.length===0){
+    list.innerHTML = `<div class="empty">No orders have come in yet.</div>`;
+    return;
+  }
+  list.innerHTML = orders.map(o=>{
+    const statusCls = o.status==='Pending'?'pending':o.status==='Declined'?'declined':'accepted';
+    const statusText = o.status==='Pending' ? 'Pending confirmation' : o.status==='Declined' ? 'Declined' : (o.deliveryStage || 'Processing');
+    const itemsSummary = o.items.map(i=>`${i.name} ×${i.qty}`).join(', ');
+    return `
+    <div class="order-card">
+      <div class="order-top">
+        <div>
+          <div class="order-id">Order ${o.id}</div>
+          <div class="order-date">${formatDate(o.date)}</div>
+        </div>
+        <span class="order-status-tag ${statusCls}">${statusText}</span>
+      </div>
+      <div class="order-cust">${o.delivery.name} · ${o.delivery.phone}</div>
+      <div class="order-addr">${o.delivery.address}, ${o.delivery.city} - ${o.delivery.pin}</div>
+      <div class="order-items-line">${itemsSummary}</div>
+      <div class="payment-tag">Payment: ${o.payment==='cod'?'Cash on delivery':o.payment.toUpperCase()}</div>
+      <div class="order-total"><span>Total</span><span>₹${o.total}</span></div>
+
+      ${o.status === 'Pending' ? `
+        <div class="order-actions">
+          <button class="accept-btn" onclick="acceptOrder('${o.id}')">Accept order</button>
+          <button class="decline-btn" onclick="declineOrder('${o.id}')">Decline order</button>
+        </div>
+      ` : ''}
+
+      ${o.status === 'Accepted' ? `
+        <div class="stage-row">
+          <select id="stage-${o.id}">
+            ${STAGES.map(s=>`<option value="${s}" ${o.deliveryStage===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <button onclick="updateStage('${o.id}')">Update progress</button>
+        </div>
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function acceptOrder(id){
+  const orders = await getData(KEYS.orders, []);
+  const o = orders.find(x=>x.id===id);
+  if(!o) return;
+  o.status = 'Accepted';
+  o.deliveryStage = 'Processing';
+  await setData(KEYS.orders, orders);
+  renderOrders();
+}
+async function declineOrder(id){
+  const orders = await getData(KEYS.orders, []);
+  const o = orders.find(x=>x.id===id);
+  if(!o) return;
+  o.status = 'Declined';
+  o.deliveryStage = null;
+  await setData(KEYS.orders, orders);
+  renderOrders();
+}
+async function updateStage(id){
+  const orders = await getData(KEYS.orders, []);
+  const o = orders.find(x=>x.id===id);
+  if(!o) return;
+  o.deliveryStage = document.getElementById('stage-'+id).value;
+  await setData(KEYS.orders, orders);
+  renderOrders();
+}
+
+function formatDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) + ' · ' +
+         d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+}
+</script>
+</body>
+</html>
